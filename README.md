@@ -6,7 +6,7 @@ It is designed around C++ templates to be:
 * Efficient: Constants known at compile time are optimized.
 * Easy-to-use: Hardware details are encapsulated within classes while still triggering error when incompatible parameters are detected.
 
-You can use 2 steppers per timer so up to 6 steppers on an Arduino Nano but don't overdo the microstepping and rotational speed, in this case, to prevent CPU bottleneck. The maximum steps/s is about 10k on Arduino Nano.
+You can use 2 steppers per timer so up to 6 steppers on an Arduino Nano but don't overdo the microstepping and rotational speed. The maximum safe steps/s with an Arduino Nan is about 10k, the bottleneck being the end of the accelerating phase.  
 
 [![Generic badge](https://img.shields.io/badge/license-Boost%20Software%20License-blue)](https://www.boost.org/users/license.html)
 
