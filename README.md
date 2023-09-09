@@ -2,9 +2,11 @@
 
 An Arduino library for controlling stepper motors with trapezoidal velocity profiles using Interrupt Service Routines (ISR).
 It is designed around C++ templates to be:
-* Versatile: you can implement your own timers, profiles and steppers interfaces.
-* Efficient: constants known at compile time are optimized.
+* Versatile: You can implement your own timers, profiles and steppers interfaces.
+* Efficient: Constants known at compile time are optimized.
 * Easy-to-use: Hardware details are encapsulated within classes while still triggering error when incompatible parameters are detected.
+
+You can use 2 steppers per timer so up to 6 steppers on an Arduino Nano but don't overdo the microstepping and rotational speed, in this case, to prevent CPU bottleneck.
 
 [![Generic badge](https://img.shields.io/badge/license-Boost%20Software%20License-blue)](https://www.boost.org/users/license.html)
 
