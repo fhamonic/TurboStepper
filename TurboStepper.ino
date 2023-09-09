@@ -2,12 +2,13 @@
 #include "StepperMotor.hpp"
 #include "TrapezoidalProfile.hpp"
 
-// step_pin = 2
+// step pin = 2
 // dir pin = 3
 // steps/turn = 800
-// max turns/sec = 1 (speed)
-// max turns/sec/sec = 2 (acceleration)
+// max speed = 1 (turns/sec)
+// max acceleration = 2 (turns/sec/sec)
 Stepper<2, 3, 800, 1, 2> stepper;
+// use Time1 with 250kHz clock
 ATMEGA328P_Timer1<C250kHz> timer1;
 TrapezoidalProfile<decltype(stepper), decltype(timer1)::CounterA> profile(
     stepper);
