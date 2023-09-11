@@ -1,10 +1,12 @@
 #ifndef ATMEGA328P_TIMER2_HPP
 #define ATMEGA328P_TIMER2_HPP
 
-#include "TimerFreq.hpp"
+#include "../ClockFrequency.hpp"
 
-template <TimerFreq Clock>
-class ATMEGA328P_Timer2 {
+namespace ATMEGA328P {
+
+template <ClockFrequency Clock>
+class Timer2 {
 public:
     struct CounterA {
         static constexpr unsigned long int MAX_VALUE = 255;
@@ -29,73 +31,69 @@ public:
         }
     };
 
-private:
-    template <TimerFreq C>
-    void _setup() {
-        static_assert(!C, "Invalid Timer2 clock");
-    }
-
 public:
-    void setup() { _setup<Clock>(); }
+    void setup();
 
     unsigned long ticksPerSec() const { return Clock; }
 };
 
+template <ClockFrequency Clock>
+void Timer2<Clock>::setup() {
+    static_assert(Clock == 0,
+                  "Invalid Timer2 clock (accepts only: C16MHz, C2MHz, C500kHz, "
+                  "C250kHz, C125kHz, C62_500Hz and C15_625Hz)");
+}
+
 template <>
-template <>
-void ATMEGA328P_Timer2<C16MHz>::_setup<C16MHz>() {
+void Timer2<C16MHz>::setup() {
     cli();
     TCCR2A = 0;
     TCCR2B = (1 << CS20);
     sei();
 }
 template <>
-template <>
-void ATMEGA328P_Timer2<C2MHz>::_setup<C2MHz>() {
+void Timer2<C2MHz>::setup() {
     cli();
     TCCR2A = 0;
     TCCR2B = (1 << CS21);
     sei();
 }
 template <>
-template <>
-void ATMEGA328P_Timer2<C500kHz>::_setup<C500kHz>() {
+void Timer2<C500kHz>::setup() {
     cli();
     TCCR2A = 0;
     TCCR2B = (1 << CS21) | (1 << CS20);
     sei();
 }
 template <>
-template <>
-void ATMEGA328P_Timer2<C250kHz>::_setup<C250kHz>() {
+void Timer2<C250kHz>::setup() {
     cli();
     TCCR2A = 0;
     TCCR2B = (1 << CS22);
     sei();
 }
 template <>
-template <>
-void ATMEGA328P_Timer2<C125kHz>::_setup<C125kHz>() {
+void Timer2<C125kHz>::setup() {
     cli();
     TCCR2A = 0;
     TCCR2B = (1 << CS22) | (1 << CS20);
     sei();
 }
 template <>
-template <>
-void ATMEGA328P_Timer2<C62_500Hz>::_setup<C62_500Hz>() {
+void Timer2<C62_500Hz>::setup() {
     cli();
     TCCR2A = 0;
     TCCR2B = (1 << CS22) | (1 << CS21);
     sei();
 }
 template <>
-template <>
-void ATMEGA328P_Timer2<C15_625Hz>::_setup<C15_625Hz>() {
+void Timer2<C15_625Hz>::setup() {
     cli();
     TCCR2A = 0;
     TCCR2B = (1 << CS22) | (1 << CS21) | (1 << CS20);
     sei();
 }
+
+}  // namespace ATMEGA328P
 
 #endif  // ATMEGA328P_TIMER2_HPP

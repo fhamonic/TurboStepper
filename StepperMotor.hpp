@@ -36,7 +36,9 @@ public:
         digitalWriteFast(STEP_PIN, HIGH);
         stepPos += stepDir;
     }
-    void stepLOW() { digitalWriteFast(STEP_PIN, LOW); }
+    void stepLOW() { 
+        digitalWriteFast(STEP_PIN, LOW);
+     }
     void dirForward() {
         digitalWriteFast(DIR_PIN, LOW);
         stepDir = 1;
