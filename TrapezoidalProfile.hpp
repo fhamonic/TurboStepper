@@ -28,10 +28,12 @@ struct TrapezoidalProfile {
 
     volatile Stepper & stepper;
 
-    long int targetStepPos;
-    long int middleStepPos;
-    long int rampDownStepPos;
-    long int n = 0;
+    using Steps = unsigned int;
+
+    Steps targetStepPos;
+    Steps middleStepPos;
+    Steps rampDownStepPos;
+    unsigned int n = 0;
     float d = 0;
     void (TrapezoidalProfile::*volatile phase_ptr)(void) = nullptr;
 
@@ -41,6 +43,8 @@ struct TrapezoidalProfile {
         targetStepPos = stepper.stepPos;
         Counter::disable();
     }
+    void do_step() { (this->*(phase_ptr))(); }
+    bool stopped() const { return phase_ptr == nullptr; }
 
     void accel_step() {
         stepper.stepHIGH();
@@ -49,7 +53,8 @@ struct TrapezoidalProfile {
         if(d <= MIN_TICKS_PER_STEP) {  // reached max speed
             d = MIN_TICKS_PER_STEP;
             phase_ptr = &TrapezoidalProfile::run_step;
-            rampDownStepPos = middleStepPos - stepper.stepPos + middleStepPos;
+            rampDownStepPos =
+                middleStepPos - stepper.stepPos + middleStepPos + 1;
         }
         Counter::increment(d);
         if(stepper.stepPos == middleStepPos) {  // reached middle point
@@ -79,26 +84,42 @@ struct TrapezoidalProfile {
         stepper.stepLOW();
     }
 
-    void do_step() { (this->*(phase_ptr))(); }
-
-    bool stopped() const { return phase_ptr == nullptr; }
-
-    void moveTo(long int steps) {
-        if(steps > stepper.stepPos)
-            stepper.dirForward();
-        else
-            stepper.dirBackward();
-
+    void initMove(Steps steps) {
         stepper.stepHIGH();
-        targetStepPos = steps;
-        middleStepPos = (stepper.stepPos & targetStepPos) +
-                        ((stepper.stepPos ^ targetStepPos) >> 1) + 1;
         d = MAX_TICKS_PER_STEP;
         n = 0;
         phase_ptr = &TrapezoidalProfile::accel_step;
         stepper.stepLOW();
         Counter::set(d);
         Counter::enable();
+    }
+
+    void moveTo(Steps steps) {
+        if(steps == targetStepPos) return;
+        Steps stepsForward = steps - stepper.stepPos;
+        Steps stepsBackward = stepper.stepPos - steps;
+        if(steps - stepper.stepPos <= stepper.stepPos - steps) {
+            stepper.dirForward();
+            middleStepPos = stepper.stepPos + stepsForward / 2;
+        } else {
+            stepper.dirBackward();
+            middleStepPos = stepper.stepPos + stepsBackward / 2;
+        }
+        targetStepPos = steps;
+
+        initMove(steps);
+    }
+
+    void moveBy(Steps steps) {
+        if(steps == 0) return;
+        if(steps > 0)
+            stepper.dirForward();
+        else
+            stepper.dirBackward();
+        targetStepPos = stepper.stepPos + steps;
+        middleStepPos = stepper.stepPos + steps / 2;
+
+        initMove(stepper.stepPos + steps);
     }
 };
 
