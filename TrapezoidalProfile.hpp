@@ -10,7 +10,8 @@
 // constexpr float constexpr_sqrt(float x) { return constexpr_sqrt(x, x, 0); }
 
 template <typename Stepper, typename Counter>
-struct TrapezoidalProfile {
+class TrapezoidalProfile {
+public:
     static constexpr unsigned long int MAX_TICKS_PER_STEP =
         Counter::TICKS_PER_SEC /
         sqrt(Stepper::STEPS_PER_TURN * Stepper::MAX_TURNS_PER_SEC_PER_SEC);
@@ -26,101 +27,107 @@ struct TrapezoidalProfile {
                   "Stepper microstepping too high, Stepper max speed too high "
                   "or Timer resolution too low");
 
-    volatile Stepper & stepper;
+    using StepsType = typename Stepper::StepsType;
 
-    using Steps = unsigned int;
+    struct Data {
+        float d;
+        unsigned int n;
+        StepsType middleStepPos;
+        StepsType rampDownStepPos;
+        StepsType targetStepPos;
+    };
 
-    Steps targetStepPos;
-    Steps middleStepPos;
-    Steps rampDownStepPos;
-    unsigned int n = 0;
-    float d = 0;
-    void (TrapezoidalProfile::*volatile phase_ptr)(void) = nullptr;
+public:
+    static Data data;
+    static void (*volatile phase_ptr)(void);
 
-    TrapezoidalProfile(Stepper & s) : stepper(s) {}
-
-    void setup() {
-        targetStepPos = stepper.stepPos;
-        Counter::disable();
+public:
+    static void Setup() {
+        data.targetStepPos = Stepper::stepPos;
+        Counter::Disable();
     }
-    void do_step() { (this->*(phase_ptr))(); }
-    bool stopped() const { return phase_ptr == nullptr; }
+    static void DoStep() { (*phase_ptr)(); }
+    static bool stopped() { return phase_ptr == nullptr; }
 
-    void accel_step() {
-        stepper.stepHIGH();
-        n += 4;
-        d -= (2.0 * d) / (n + 1);
-        if(d <= MIN_TICKS_PER_STEP) {  // reached max speed
-            d = MIN_TICKS_PER_STEP;
-            phase_ptr = &TrapezoidalProfile::run_step;
-            rampDownStepPos =
-                middleStepPos - stepper.stepPos + middleStepPos + 1;
+    static void AccelStep() {
+        Stepper::StepHIGH();
+        data.n += 4;
+        data.d -= (2.0 * data.d) / (data.n + 1);
+        if(data.d <= MIN_TICKS_PER_STEP) {  // reached max speed
+            data.d = MIN_TICKS_PER_STEP;
+            phase_ptr = &TrapezoidalProfile::RunStep;
+            data.rampDownStepPos =
+                data.middleStepPos - Stepper::stepPos + data.middleStepPos + 1;
         }
-        Counter::increment(d);
-        if(stepper.stepPos == middleStepPos) {  // reached middle point
-            phase_ptr = &TrapezoidalProfile::decel_step;
+        Counter::Increment(data.d);
+        if(Stepper::stepPos == data.middleStepPos) {  // reached middle point
+            phase_ptr = &TrapezoidalProfile::DecelStep;
         }
-        stepper.stepLOW();
-    }
-
-    void run_step() {
-        stepper.stepHIGH();
-        Counter::increment(d);
-        if(stepper.stepPos == rampDownStepPos) {  // reached end of cruise
-            phase_ptr = &TrapezoidalProfile::decel_step;
-        }
-        stepper.stepLOW();
+        Stepper::StepLOW();
     }
 
-    void decel_step() {
-        stepper.stepHIGH();
-        n -= 4;
-        d *= static_cast<float>(n + 1) / (n - 1);
-        Counter::increment(d);
-        if(stepper.stepPos == targetStepPos) {
-            Counter::disable();
+    static void RunStep() {
+        Stepper::StepHIGH();
+        Counter::Increment(data.d);
+        if(Stepper::stepPos == data.rampDownStepPos) {  // reached end of cruise
+            phase_ptr = &TrapezoidalProfile::DecelStep;
+        }
+        Stepper::StepLOW();
+    }
+
+    static void DecelStep() {
+        Stepper::StepHIGH();
+        data.n -= 4;
+        data.d *= static_cast<float>(data.n + 1) / (data.n - 1);
+        Counter::Increment(data.d);
+        if(Stepper::stepPos == data.targetStepPos) {
+            Counter::Disable();
             phase_ptr = nullptr;
         }
-        stepper.stepLOW();
+        Stepper::StepLOW();
     }
 
-    void initMove(Steps steps) {
-        stepper.stepHIGH();
-        d = MAX_TICKS_PER_STEP;
-        n = 0;
-        phase_ptr = &TrapezoidalProfile::accel_step;
-        stepper.stepLOW();
-        Counter::set(d);
-        Counter::enable();
+    static void InitMove() {
+        Stepper::StepHIGH();
+        Counter::Set(data.d = MAX_TICKS_PER_STEP);
+        data.n = 0;
+        phase_ptr = &TrapezoidalProfile::AccelStep;
+        Counter::Enable();
+        Stepper::StepLOW();
     }
 
-    void moveTo(Steps steps) {
-        if(steps == targetStepPos) return;
-        Steps stepsForward = steps - stepper.stepPos;
-        Steps stepsBackward = stepper.stepPos - steps;
-        if(steps - stepper.stepPos <= stepper.stepPos - steps) {
-            stepper.dirForward();
-            middleStepPos = stepper.stepPos + stepsForward / 2;
-        } else {
-            stepper.dirBackward();
-            middleStepPos = stepper.stepPos + stepsBackward / 2;
-        }
-        targetStepPos = steps;
-
-        initMove(steps);
-    }
-
-    void moveBy(Steps steps) {
+    static void MoveForward(StepsType steps) {
         if(steps == 0) return;
-        if(steps > 0)
-            stepper.dirForward();
-        else
-            stepper.dirBackward();
-        targetStepPos = stepper.stepPos + steps;
-        middleStepPos = stepper.stepPos + steps / 2;
+        Stepper::DirForward();
+        data.targetStepPos = Stepper::stepPos + steps;
+        data.middleStepPos = Stepper::stepPos + steps / 2;
+        InitMove();
+    }
 
-        initMove(stepper.stepPos + steps);
+    static void MoveBackward(StepsType steps) {
+        if(steps == 0) return;
+        Stepper::DirBackward();
+        data.targetStepPos = Stepper::stepPos - steps;
+        data.middleStepPos = Stepper::stepPos - steps / 2;
+        InitMove();
+    }
+
+    static void MoveTo(StepsType steps) {
+        if(steps == data.targetStepPos) return;
+        StepsType stepsForward = steps - Stepper::stepPos;
+        StepsType stepsBackward = Stepper::stepPos - steps;
+        if(stepsForward <= stepsBackward) {
+            MoveForward(stepsForward);
+        } else {
+            MoveBackward(stepsBackward);
+        }
     }
 };
+
+template <typename _S, typename _C>
+typename TrapezoidalProfile<_S, _C>::Data TrapezoidalProfile<_S, _C>::data = {};
+
+template <typename _S, typename _C>
+void (*volatile TrapezoidalProfile<_S, _C>::phase_ptr)(void) = nullptr;
 
 #endif  // TRAPEZOIDAL_PROFILE_HPP

@@ -43,7 +43,7 @@
 //         unsigned long int t = micros();
 //         Serial.print(Counter::delay_us);
 //         Serial.print(',');
-//         profile.do_step();
+//         profile.DoStep();
 //     }
 //     Serial.println(']');
 

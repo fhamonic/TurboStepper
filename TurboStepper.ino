@@ -7,34 +7,21 @@
 // steps/turn = 800
 // max speed = 1 (turns/sec)
 // max acceleration = 2 (turns/sec/sec)
-Stepper<2, 3, 800, 14, 4> stepper;
-// use Time1 with 250kHz clock
-ATMEGA328P::Timer1<C2MHz> timer;
-TrapezoidalProfile<decltype(stepper), decltype(timer)::CounterA> profile(
-    stepper);
-ISR(TIMER1_COMPA_vect) { profile.do_step(); }
+using Stepper1 = Stepper<2, 3, 800, 12, 8>;
+// use Time1 with 2MHz clock
+using Timer = ATMEGA328P::Timer1<C2MHz>;
+using Profile = TrapezoidalProfile<Stepper1, Timer::CounterA>;
+
+ISR(TIMER1_COMPA_vect) { Profile::DoStep(); }
 
 void setup() {
-    Serial.begin(9600);
-    stepper.setup();
-    timer.setup();
-    profile.setup();
-
-    // Serial.println("min/max:");
-    // Serial.println(decltype(profile)::MIN_TICKS_PER_STEP);
-    // Serial.println(decltype(profile)::MAX_TICKS_PER_STEP);
-    // Serial.println("start");
+    Stepper1::Setup();
+    Timer::Setup();
+    Profile::Setup();
 }
 
-long int pos = 1600;
 void loop() {
-    for(int i = 0; i < 4; ++i) {
-        profile.moveTo(pos);
-        while(!profile.stopped())
-            ;
-        delay(1000);
-        pos *= 4;
-    }
+    Profile::MoveForward(60000);
     while(true)
         ;
 }

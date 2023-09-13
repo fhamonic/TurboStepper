@@ -26,22 +26,21 @@ Uses the library [digitalWriteFast](https://www.arduino.cc/reference/en/librarie
 // steps/turn = 800
 // max speed = 1 (turns/sec)
 // max acceleration = 2 (turns/sec/sec)
-Stepper<2, 3, 800, 1, 2> stepper;
-// use Time1 with 250kHz clock
-ATMEGA328P_Timer1<C250kHz> timer1;
-TrapezoidalProfile<decltype(stepper), decltype(timer1)::CounterA> profile(
-    stepper);
+using Stepper1 = Stepper<2, 3, 800, 12, 4>;
+// use Time1 with 2MHz clock
+using Timer = ATMEGA328P::Timer1<C2MHz>;
+using Profile = TrapezoidalProfile<Stepper1, Timer::CounterA>;
 
-ISR(TIMER1_COMPA_vect) { profile.do_step(); }
+ISR(TIMER1_COMPA_vect) { Profile::DoStep(); }
 
 void setup() {
-    stepper.setup();
-    timer1.setup();
-    profile.setup();
+    Stepper1::setup();
+    Timer::setup();
+    Profile::setup();
 }
 
 void loop() {
-    profile.moveTo(4000);
+    Profile::moveTo(4000);
     while(true);
 }
 ```
