@@ -24,23 +24,23 @@ Uses the library [digitalWriteFast](https://www.arduino.cc/reference/en/librarie
 // step pin = 2
 // dir pin = 3
 // steps/turn = 800
-// max speed = 1 (turns/sec)
-// max acceleration = 2 (turns/sec/sec)
+// max speed = 12 (turns/sec)
+// max acceleration = 4 (turns/sec/sec)
 using Stepper1 = Stepper<2, 3, 800, 12, 4>;
-// use Time1 with 2MHz clock
+// use Timer1 with 2MHz clock
 using Timer = ATMEGA328P::Timer1<C2MHz>;
 using Profile = TrapezoidalProfile<Stepper1, Timer::CounterA>;
 
 ISR(TIMER1_COMPA_vect) { Profile::DoStep(); }
 
 void setup() {
-    Stepper1::setup();
-    Timer::setup();
-    Profile::setup();
+    Stepper1::Setup();
+    Timer::Setup();
+    Profile::Setup();
 }
 
 void loop() {
-    Profile::moveTo(4000);
+    Profile::MoveTo(40000);
     while(true);
 }
 ```
