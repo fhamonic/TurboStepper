@@ -23,7 +23,7 @@ public:
                   "Stepper microstepping too low, Stepper acceleration too low "
                   "or Timer resolution too high");
     // Safety of 100us per step
-    static_assert(MIN_TICKS_PER_STEP > 0.000070 * Counter::TICKS_PER_SEC,
+    static_assert(MIN_TICKS_PER_STEP > 0.000100 * Counter::TICKS_PER_SEC,
                   "Stepper microstepping too high, Stepper max speed too high "
                   "or Timer resolution too low");
 

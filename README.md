@@ -17,7 +17,7 @@ Uses the library [digitalWriteFast](https://www.arduino.cc/reference/en/librarie
 ## Code example
 
 ```cpp
-#include "ATMEGA328P_Timer1.hpp"
+#include "ATMEGA328P/Timer1.hpp"
 #include "StepperMotor.hpp"
 #include "TrapezoidalProfile.hpp"
 

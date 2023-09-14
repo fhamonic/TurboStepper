@@ -16,7 +16,7 @@ struct StepperMotor {
 
 template <uint8_t STEP_PIN, uint8_t DIR_PIN, unsigned int _STEPS_PER_TURN = 200,
           int _MAX_TURNS_PER_SEC = 4, int _MAX_TURNS_PER_SEC_PER_SEC = 8>
-class Stepper {
+class Stepper : StepperMotor {
 public:
     using StepsType = unsigned int;
 
