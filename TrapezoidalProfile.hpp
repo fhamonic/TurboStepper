@@ -122,6 +122,23 @@ public:
             MoveBackward(stepsBackward);
         }
     }
+
+    static void AccelSpeed() {
+        Stepper::StepHIGH();
+        data.n += 4;
+        data.d -= (2.0 * data.d) / (data.n + 1);
+        if(data.d <= MIN_TICKS_PER_STEP) {  // reached max speed
+            data.d = MIN_TICKS_PER_STEP;
+            phase_ptr = &TrapezoidalProfile::RunStep;
+            data.rampDownStepPos =
+                data.middleStepPos - Stepper::stepPos + data.middleStepPos + 1;
+        }
+        Counter::Increment(data.d);
+        if(Stepper::stepPos == data.middleStepPos) {  // reached middle point
+            phase_ptr = &TrapezoidalProfile::DecelStep;
+        }
+        Stepper::StepLOW();
+    }
 };
 
 template <typename _S, typename _C>
