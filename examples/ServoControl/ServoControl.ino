@@ -1,5 +1,4 @@
-#include "ATMEGA328P/Timer2.hpp"
-#include "Servo.hpp"
+#include <TurboStepper.hpp>
 
 // use Timer2 with 15_625Hz clock
 using Timer2 = ATMEGA328P::Timer2<C15_625Hz>;

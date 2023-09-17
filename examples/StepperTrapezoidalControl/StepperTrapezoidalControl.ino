@@ -1,6 +1,4 @@
-#include "ATMEGA328P/Timer1.hpp"
-#include "Stepper.hpp"
-#include "TrapezoidalProfile.hpp"
+#include <TurboStepper.hpp>
 
 // step pin = 2
 // dir pin = 3

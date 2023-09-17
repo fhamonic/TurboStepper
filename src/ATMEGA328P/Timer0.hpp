@@ -13,7 +13,7 @@ public:
         static constexpr unsigned long int TICKS_PER_SEC = Clock;
         static void Enable() { TIMSK0 |= (1 << OCIE0A); }
         static void Disable() { TIMSK0 &= ~(1 << OCIE0A); }
-        static void Set(uint06_t ticks) { OCR0A = TCNT0 + ticks; }
+        static void Set(uint16_t ticks) { OCR0A = TCNT0 + ticks; }
         template <typename T>
         static void Increment(T ticks) {
             OCR0A += ticks;
