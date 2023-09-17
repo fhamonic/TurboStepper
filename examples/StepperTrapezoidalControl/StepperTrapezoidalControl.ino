@@ -20,7 +20,7 @@ void setup() {
 
 void loop() {
     Profile::MoveForward(4000);
-    while(!Profile::stopped());
+    while(Profile::IsMoving());
     Profile::MoveBackward(4000);
-    while(!Profile::stopped());
+    while(Profile::IsMoving());
 }

@@ -47,7 +47,7 @@ public:
         Counter::Disable();
     }
     static void DoStep() { (*phase_ptr)(); }
-    static bool stopped() { return phase_ptr == nullptr; }
+    static bool IsMoving() { return phase_ptr != nullptr; }
 
     static void AccelStep() {
         Stepper::StepHIGH();
