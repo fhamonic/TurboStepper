@@ -1,22 +1,11 @@
-#ifndef STEPPER_MOTOR_HPP
-#define STEPPER_MOTOR_HPP
+#ifndef STEPPER_HPP
+#define STEPPER_HPP
 
 #include <digitalWriteFast.h>
 
-struct StepperMotor {
-    virtual void setup() = 0;
-    virtual unsigned int stepsPerTurn() const = 0;
-    virtual float maxTurnsPerSec() const = 0;
-    virtual float maxTurnsPerSecPerSec() const = 0;
-    virtual void stepHIGH() = 0;
-    virtual void stepLOW() = 0;
-    virtual void dirForward() = 0;
-    virtual void dirBackward() = 0;
-};
-
 template <uint8_t STEP_PIN, uint8_t DIR_PIN, unsigned int _STEPS_PER_TURN = 200,
           int _MAX_TURNS_PER_SEC = 4, int _MAX_TURNS_PER_SEC_PER_SEC = 8>
-class Stepper : StepperMotor {
+class Stepper {
 public:
     using StepsType = unsigned int;
 
@@ -52,7 +41,9 @@ public:
     void setup() { Stepper::setup(); }
     StepsType stepsPerTurn() const { return Stepper::stepsPerTurn(); }
     float maxTurnsPerSec() const { return Stepper::maxTurnsPerSec(); }
-    float maxTurnsPerSecPerSec() const { return Stepper::maxTurnsPerSecPerSec(); }
+    float maxTurnsPerSecPerSec() const {
+        return Stepper::maxTurnsPerSecPerSec();
+    }
     void stepHIGH() { Stepper::stepHIGH(); }
     void stepLOW() { Stepper::stepLOW(); }
     void dirForward() { Stepper::dirForward(); }
@@ -67,4 +58,4 @@ template <uint8_t _SP, uint8_t _DP, unsigned int _SPT, int _TPS, int _SPSPS>
 typename Stepper<_SP, _DP, _SPT, _TPS, _SPSPS>::StepsType
     Stepper<_SP, _DP, _SPT, _TPS, _SPSPS>::stepDir = 0;
 
-#endif  // STEPPER_MOTOR_HPP
+#endif  // STEPPER_HPP

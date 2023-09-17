@@ -6,7 +6,7 @@ It is designed around C++ templates to be:
 * Efficient: Constants known at compile time are optimized.
 * Easy-to-use: Hardware details are encapsulated within classes while still triggering errors when incompatible parameters are detected.
 
-You can use 2 steppers per timer so up to 6 steppers on an Arduino Nano but don't overdo the microstepping and rotational speed. The maximum safe steps/s with an Arduino Nan is about 10k, the bottleneck being the end of the accelerating phase.  
+You can use 2 steppers per timer so up to 6 steppers on an Arduino Nano but don't overdo the microstepping and rotational speed. The maximum safe steps/s with an Arduino Nano is about 10k, the bottleneck being the end of the accelerating phase.  
 
 [![Generic badge](https://img.shields.io/badge/license-Boost%20Software%20License-blue)](https://www.boost.org/users/license.html)
 
@@ -14,19 +14,17 @@ You can use 2 steppers per timer so up to 6 steppers on an Arduino Nano but don'
 
 Uses the library [digitalWriteFast](https://www.arduino.cc/reference/en/libraries/digitalwritefast/).
 
-## Code example
+## Code examples
 
 ```cpp
-#include "ATMEGA328P/Timer1.hpp"
-#include "StepperMotor.hpp"
-#include "TrapezoidalProfile.hpp"
+#include "TurboStepper.hpp"
 
 // step pin = 2
 // dir pin = 3
 // steps/turn = 800
-// max speed = 12 (turns/sec)
+// max speed = 2 (turns/sec)
 // max acceleration = 4 (turns/sec/sec)
-using Stepper1 = Stepper<2, 3, 800, 12, 4>;
+using Stepper1 = Stepper<2, 3, 800, 2, 4>;
 // use Timer1 with 2MHz clock
 using Timer = ATMEGA328P::Timer1<C2MHz>;
 using Profile = TrapezoidalProfile<Stepper1, Timer::CounterA>;
@@ -40,8 +38,34 @@ void setup() {
 }
 
 void loop() {
-    Profile::MoveTo(40000);
-    while(true);
+    Profile::MoveForward(4000);
+    while(!Profile::stopped());
+    Profile::MoveBackward(4000);
+    while(!Profile::stopped());
+}
+```
+
+
+```cpp
+#include "TurboStepper.hpp"
+
+// use Timer2 with 15_625Hz clock
+using Timer2 = ATMEGA328P::Timer2<C15_625Hz>;
+// PWM pin = 4
+using Servo1 = Servo<4, Timer2::CounterA>;
+
+ISR(TIMER2_COMPA_vect) { Servo1::DoPulse(); }
+
+void setup() {
+    Timer2::Setup();
+    Servo1::Setup();
+}
+
+void loop() {
+    Servo1::MoveTo(0);
+    delay(2000);
+    Servo1::MoveTo(180.0);
+    delay(2000);
 }
 ```
     

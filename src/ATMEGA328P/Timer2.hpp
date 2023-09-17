@@ -17,6 +17,11 @@ public:
         template <typename T>
         static void Increment(T ticks) {
             OCR2A += ticks;
+            // ticks = MAX_VALUE - ticks;
+            // if(OCR2A > ticks)
+            //     OCR2A -= ticks;
+            // else
+            //     OCR2A += MAX_VALUE - ticks;
         }
     };
     struct CounterB {
