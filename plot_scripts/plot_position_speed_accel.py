@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+from scipy.signal import savgol_filter
 
 steps_per_turn = 800
 ticks_per_second = 2000000
@@ -22,7 +23,7 @@ sec_per_step = [ticks_to_sec(ticks) for ticks in ticks_per_step]
 # speed (steps/sec)
 steps_per_sec = [1/t for t in sec_per_step] + [0]
 # speed (ticks/sec)
-turns_per_sec = [0] + [steps_to_turns(steps) for steps in steps_per_sec] + [0]
+turns_per_sec = [0] + [steps_to_turns(steps) for steps in steps_per_sec]
 
 # time (sec)
 time = [0]
@@ -36,12 +37,14 @@ for i in range(n):
 
 acceleration = [float('inf')]
 for i in range(n):
-    acceleration.append((avg(turns_per_sec[i+1],turns_per_sec[i+2]) - avg(turns_per_sec[i],turns_per_sec[i+1]))/sec_per_step[i])
+    acceleration.append((turns_per_sec[i+1] - turns_per_sec[i])/sec_per_step[i])
+
+smoothed_accel = savgol_filter(acceleration, 16, 1)
 
 plt.plot(time, position, label="position (turns)")
 turns_per_sec.pop()
-turns_per_sec.pop()
 plt.plot(time, turns_per_sec, label="speed (turns/sec)")
-plt.plot(time, acceleration, label="acceleration (turns/sec/sec)")
+# plt.plot(time, acceleration, label="acceleration (turns/sec/sec)")
+plt.plot(time, smoothed_accel, label="acceleration (turns/sec/sec)")
 plt.legend()
 plt.show()
