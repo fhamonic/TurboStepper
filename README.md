@@ -9,7 +9,7 @@ The library is designed around templates to be:
 * Efficient: Constants known at compile time are optimized to make the ISRs as quick as possible.
 * Easy-to-use: Hardware details are encapsulated within classes while still triggering errors when incompatible parameters are detected.
 
-The provided implementations allows using 2 steppers per timer so up to 6 steppers on an Arduino Nano with a maximum safe steps/s of about 8k, the bottleneck being the end of the accelerating phase.  
+The provided implementations allows using 2 steppers per timer so up to 6 steppers on an Arduino Nano with a maximum safe steps/s of about 10k, the bottleneck being the end of the accelerating phase.  
 
 [![Generic badge](https://img.shields.io/badge/license-Boost%20Software%20License-blue)](https://www.boost.org/users/license.html)
 
