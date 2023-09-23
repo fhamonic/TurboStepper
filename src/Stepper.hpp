@@ -14,8 +14,8 @@ public:
     static constexpr float MAX_TURNS_PER_SEC_PER_SEC =
         _MAX_TURNS_PER_SEC_PER_SEC;
 
-    static StepsType stepPos;
-    static StepsType stepDir;
+    static volatile StepsType stepPos;
+    static volatile StepsType stepDir;
 
 public:
     static void Setup() {
@@ -36,26 +36,32 @@ public:
         digitalWriteFast(DIR_PIN, HIGH);
         stepDir = -1;
     }
+    static bool IsForward() {
+        return stepDir == 1;
+    }
+    static bool IsBackward() {
+        return !IsForward();
+    }
 
 public:
-    void setup() { Stepper::setup(); }
+    void setup() { Stepper::Setup(); }
     StepsType stepsPerTurn() const { return Stepper::stepsPerTurn(); }
     float maxTurnsPerSec() const { return Stepper::maxTurnsPerSec(); }
     float maxTurnsPerSecPerSec() const {
         return Stepper::maxTurnsPerSecPerSec();
     }
-    void stepHIGH() { Stepper::stepHIGH(); }
-    void stepLOW() { Stepper::stepLOW(); }
-    void dirForward() { Stepper::dirForward(); }
-    void dirBackward() { Stepper::dirBackward(); }
+    void stepHIGH() { Stepper::StepHIGH(); }
+    void stepLOW() { Stepper::StepLOW(); }
+    void dirForward() { Stepper::DirForward(); }
+    void dirBackward() { Stepper::DirBackward(); }
 };
 
 template <uint8_t _SP, uint8_t _DP, unsigned int _SPT, int _TPS, int _SPSPS>
-typename Stepper<_SP, _DP, _SPT, _TPS, _SPSPS>::StepsType
+volatile typename Stepper<_SP, _DP, _SPT, _TPS, _SPSPS>::StepsType 
     Stepper<_SP, _DP, _SPT, _TPS, _SPSPS>::stepPos = 0;
 
 template <uint8_t _SP, uint8_t _DP, unsigned int _SPT, int _TPS, int _SPSPS>
-typename Stepper<_SP, _DP, _SPT, _TPS, _SPSPS>::StepsType
+volatile typename Stepper<_SP, _DP, _SPT, _TPS, _SPSPS>::StepsType
     Stepper<_SP, _DP, _SPT, _TPS, _SPSPS>::stepDir = 0;
 
 #endif  // STEPPER_HPP

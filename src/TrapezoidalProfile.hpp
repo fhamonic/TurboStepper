@@ -1,14 +1,6 @@
 #ifndef TRAPEZOIDAL_PROFILE_HPP
 #define TRAPEZOIDAL_PROFILE_HPP
 
-// based on http://ww1.microchip.com/downloads/en/AppNotes/doc8017.pdf
-
-// constexpr float constexpr_sqrt(float x, float curr, float prev) {
-//     return curr == prev ? curr
-//                         : constexpr_sqrt(x, 0.5 * (curr + x / curr), curr);
-// }
-// constexpr float constexpr_sqrt(float x) { return constexpr_sqrt(x, x, 0); }
-
 template <typename Stepper, typename Counter>
 class TrapezoidalProfile {
 public:
@@ -22,7 +14,7 @@ public:
     static_assert(MAX_TICKS_PER_STEP <= Counter::MAX_VALUE,
                   "Stepper microstepping too low, Stepper acceleration too low "
                   "or Timer resolution too high");
-    // Safety of 100us per step
+    // Safety of 100us per step (minimum mesure at 80us with ATMEGA328P)
     static_assert(MIN_TICKS_PER_STEP > 0.000100 * Counter::TICKS_PER_SEC,
                   "Stepper microstepping too high, Stepper max speed too high "
                   "or Timer resolution too low");
@@ -114,6 +106,22 @@ public:
         Stepper::StepLOW();
     }
 
+    static void SwitchDirSpeed() {
+        Stepper::StepHIGH();
+        data.n -= 4;
+        data.d *= static_cast<float>(data.n + 1) / (data.n - 1);
+        Counter::Increment(data.d);
+        Stepper::StepLOW();
+        if(data.n == 0) {
+            Counter::Set(data.d = MAX_TICKS_PER_STEP);
+            phase_ptr = &TrapezoidalProfile::AccelSpeed;
+            if(Stepper::IsForward())
+                Stepper::DirBackward();
+            else
+                Stepper::DirForward();
+        }
+    }
+
 public:
     static void Setup() {
         data.targetStepPos = Stepper::stepPos;
@@ -160,20 +168,31 @@ public:
     }
 
     static void SetSpeed(float turnsPerSec) {
-        if(turnsPerSec == 0)
+        if(turnsPerSec == 0) {
             data.targetTicksPerStep = Counter::MAX_VALUE;
-        else
-            data.targetTicksPerStep =
-                constrain(Counter::TICKS_PER_SEC /
-                              (Stepper::STEPS_PER_TURN * turnsPerSec),
-                          MIN_TICKS_PER_STEP, MAX_TICKS_PER_STEP);
+            phase_ptr = &TrapezoidalProfile::DecelSpeed;
+            return;
+        }
+
+        data.targetTicksPerStep =
+            constrain(Counter::TICKS_PER_SEC /
+                          (Stepper::STEPS_PER_TURN * abs(turnsPerSec)),
+                      MIN_TICKS_PER_STEP, MAX_TICKS_PER_STEP);
 
         if(IsMoving()) {
-            if(data.d < data.targetTicksPerStep)
-                phase_ptr = &TrapezoidalProfile::DecelSpeed;
-            else
-                phase_ptr = &TrapezoidalProfile::AccelSpeed;
+            if((turnsPerSec > 0) == (Stepper::IsForward())) {
+                if(data.d < data.targetTicksPerStep)
+                    phase_ptr = &TrapezoidalProfile::DecelSpeed;
+                else
+                    phase_ptr = &TrapezoidalProfile::AccelSpeed;
+            } else {
+                phase_ptr = &TrapezoidalProfile::SwitchDirSpeed;
+            }
         } else {
+            if(turnsPerSec > 0)
+                Stepper::DirForward();
+            else
+                Stepper::DirBackward();
             InitMove();
             phase_ptr = &TrapezoidalProfile::AccelSpeed;
         }

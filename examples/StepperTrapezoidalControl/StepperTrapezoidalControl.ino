@@ -5,7 +5,7 @@
 // steps/turn = 800
 // max speed = 2 (turns/sec)
 // max acceleration = 4 (turns/sec/sec)
-using Stepper1 = Stepper<2, 3, 800, 2, 4>;
+using Stepper1 = Stepper<10, 9, 1600, 2, 4>;
 // use Timer1 with 2MHz clock
 using Timer = ATMEGA328P::Timer1<C2MHz>;
 using Profile = TrapezoidalProfile<Stepper1, Timer::CounterA>;
@@ -19,8 +19,13 @@ void setup() {
 }
 
 void loop() {
-    Profile::MoveForward(4000);
+    Profile::MoveBackward(200);
     while(Profile::IsMoving());
-    Profile::MoveBackward(4000);
+    Profile::MoveBackward(1600);
     while(Profile::IsMoving());
+    Profile::MoveForward(1600);
+    while(Profile::IsMoving());
+    Profile::MoveForward(200);
+    while(Profile::IsMoving());
+    delay(4000);
 }

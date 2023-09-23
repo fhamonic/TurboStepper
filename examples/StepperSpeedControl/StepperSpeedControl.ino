@@ -27,4 +27,5 @@ void loop() {
     delay(2000);
     Profile::SetSpeed(0);
     while(Profile::IsMoving()) ;
+    delay(2000);
 }
