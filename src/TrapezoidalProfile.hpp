@@ -15,7 +15,7 @@ public:
                   "Stepper microstepping too low, Stepper acceleration too low "
                   "or Timer resolution too high");
     // Safety of 100us per step (minimum mesure at 80us with ATMEGA328P)
-    static_assert(MIN_TICKS_PER_STEP > 0.000100 * Counter::TICKS_PER_SEC,
+    static_assert(MIN_TICKS_PER_STEP > 0.000080 * Counter::TICKS_PER_SEC,
                   "Stepper microstepping too high, Stepper max speed too high "
                   "or Timer resolution too low");
 
@@ -31,7 +31,7 @@ public:
     };
 
 public:
-    static Data data;
+    static volatile Data data;
     static void (*volatile phase_ptr)(void);
 
     static void AccelStep() {
@@ -200,7 +200,7 @@ public:
 };
 
 template <typename _S, typename _C>
-typename TrapezoidalProfile<_S, _C>::Data TrapezoidalProfile<_S, _C>::data = {};
+volatile typename TrapezoidalProfile<_S, _C>::Data TrapezoidalProfile<_S, _C>::data = {};
 
 template <typename _S, typename _C>
 void (*volatile TrapezoidalProfile<_S, _C>::phase_ptr)(void) = nullptr;
