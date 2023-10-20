@@ -197,10 +197,17 @@ public:
             phase_ptr = &TrapezoidalProfile::AccelSpeed;
         }
     }
+
+    static void WaitStop() {
+        while(IsMoving())
+            ;
+    }
 };
 
 template <typename _S, typename _C>
-volatile typename TrapezoidalProfile<_S, _C>::Data TrapezoidalProfile<_S, _C>::data = {};
+volatile
+    typename TrapezoidalProfile<_S, _C>::Data TrapezoidalProfile<_S, _C>::data =
+        {};
 
 template <typename _S, typename _C>
 void (*volatile TrapezoidalProfile<_S, _C>::phase_ptr)(void) = nullptr;
